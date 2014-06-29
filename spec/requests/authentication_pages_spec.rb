@@ -50,8 +50,11 @@ describe "Authentication" do
       end
       
       describe "visit new" do
-        before { visit new_user_path(user) }
-        it { should have_content('Welcome to the Sample App') }
+        before do
+          sign_in user, no_capybara: true
+          get new_user_path(user)
+        end
+        specify { expect(response).to redirect_to(root_url) }
       end
       
       describe "visit create" do
@@ -73,6 +76,19 @@ describe "Authentication" do
     describe "for non-signed-in users" do
       let(:user) { FactoryGirl.create(:user) }
 
+      describe "in the Microposts controller" do
+
+        describe "submitting to the create action" do
+          before { post microposts_path }
+          specify { expect(response).to redirect_to(signin_path) }
+        end
+
+        describe "submitting to the destroy action" do
+          before { delete micropost_path(FactoryGirl.create(:micropost)) }
+          specify { expect(response).to redirect_to(signin_path) }
+        end
+      end
+      
       describe "when attempting to visit a protected page" do
         before do
           visit edit_user_path(user)
